@@ -1,26 +1,16 @@
 const {Router} = require('express');
 const router = Router();
-const Productos = require('../api/contenedor')
-const Cometario = require('../api/contenedor_msg')
+const db = require('../scripts/crearTablas');
 
-const comentario = new Cometario('comentarios_chat');
-const producto = new Productos('productos_chat');
-
-/*Crear base de datos si no existe*/
-(async ()=> {
-  const db = await producto.existTable();
-  if(!db){
-    await producto.creatTabla();
-  }else{
-    console.log('La tabla que intenta crear ya existe');
-  }
-})();
-
-
+/*GET*/
 router.get('/', async (req, res) => {
-  const productosLista = await producto.getAll();
-  const commentsList = await comentario.getAll();
-  res.render('index', {productosLista, commentsList});
+  try {
+    const productosLista = await db.producto.listarProductos();
+    const commentsList = await db.comments.listarComment();
+    res.render('index', {productosLista, commentsList});
+  } catch (error) {
+    console.log(error);
+  }
 })
 
 module.exports = router;

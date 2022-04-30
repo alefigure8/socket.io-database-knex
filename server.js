@@ -1,9 +1,5 @@
 const express = require('express');
 const { engine } = require('express-handlebars');
-const Productos = require('./api/contenedor')
-const Comments = require('./api/contenedor_msg')
-const producto = new Productos()
-const comments = new Comments()
 
 const {Server: IOServer} = require('socket.io');
 const {Server: HttpServer} = require('http');
@@ -12,6 +8,7 @@ const app = express();
 const httpServer = new HttpServer(app);
 const io = new IOServer(httpServer);
 
+const db = require('./scripts/crearTablas');
 const path = require('path');
 
 app.use(express.json());
@@ -46,14 +43,14 @@ server.on('error', err => {
 
 io.on('connection', (socket) => {
   socket.on('newProduct', async (data)=>{
-    await producto.save(data);
-    const productosLista = await producto.getAll()
+    await db.producto.insertProductos(data);
+    const productosLista = await producto.listarProductos()
     io.sockets.emit('product', productosLista);
   })
 
   socket.on('newMsg', async (msg)=>{
-    await comments.save(msg);
-    const commentsList = await comments.getAll()
+    await db.comments.insertComment(msg);
+    const commentsList = await db.comments.listarComment()
     io.sockets.emit('message', commentsList);
   })
 })
